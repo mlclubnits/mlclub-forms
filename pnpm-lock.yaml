@@ -14,21 +14,9 @@ importers:
       '@supabase/supabase-js':
         specifier: ^2.49.10
         version: 2.49.10
-      '@svelte-put/resize':
-        specifier: ^4.0.0
-        version: 4.0.0(svelte@5.33.14)
-      svelte-dnd-action:
-        specifier: ^0.9.61
-        version: 0.9.61(svelte@5.33.14)
-      svelte-drag:
-        specifier: ^3.1.0
-        version: 3.1.0
-      svelte-drag-and-drop-actions:
-        specifier: ^1.0.2
-        version: 1.0.2
-      svelte-grid:
-        specifier: ^5.1.2
-        version: 5.1.2
+      lucide-svelte:
+        specifier: ^0.513.0
+        version: 0.513.0(svelte@5.33.14)
     devDependencies:
       '@eslint/compat':
         specifier: ^1.2.5
@@ -480,11 +468,6 @@ packages:
 
   '@supabase/supabase-js@2.49.10':
     resolution: {integrity: sha512-IRPcIdncuhD2m1eZ2Fkg0S1fq9SXlHfmAetBxPN66kVFtTucR8b01xKuVmKqcIJokB17umMf1bmqyS8yboXGsw==}
-
-  '@svelte-put/resize@4.0.0':
-    resolution: {integrity: sha512-ZZuBEaTCcUk5491o1Px5ZWq9DZPw3G+3/zCrMGwSO/oqa5X8ksV9LLgqAd8ODRw/Sl1/sNZiPU7JwB0qjhcf5Q==}
-    peerDependencies:
-      svelte: ^5.1.0
 
   '@sveltejs/acorn-typescript@1.0.5':
     resolution: {integrity: sha512-IwQk4yfwLdibDlrXVE04jTZYlLnwsTT2PIOQQGNLWfjavGifnk1JD1LcZjZaBTRcxZu2FfPfNLOE04DSu9lqtQ==}
@@ -993,9 +976,6 @@ packages:
   isexe@2.0.0:
     resolution: {integrity: sha512-RHxMLp9lnKHGHRng9QFhRCMbYAcVpn69smSGcq3f36xjgVVWThj4qqLbTLlq7Ssj8B+fIQ1EuCEGI2lKsyQeIw==}
 
-  javascript-interface-library@0.1.14:
-    resolution: {integrity: sha512-TSdQbLKqq6PcFk9M9Qk+l45rjqWfTMhSkvZVcByy1tKsDYDH+kblKu/FcVk4lWkeYXvcczX8NtPGdeyrZYEBrw==}
-
   jiti@2.4.2:
     resolution: {integrity: sha512-rg9zJN+G4n2nfJl5MW3BMygZX56zKPNVEYYqq7adpmMh4Jn2QNEwhvQlFy6jPVdcod7txZtKHWnyZiA3a0zP7A==}
     hasBin: true
@@ -1110,6 +1090,11 @@ packages:
 
   lodash.merge@4.6.2:
     resolution: {integrity: sha512-0KpjqXRVvrYyCsX1swR/XTK0va6VQkQM6MNo7PqW77ByjAhoARA8EfrP1N4+KlKj8YS0ZUCtRT/YUuhyYDujIQ==}
+
+  lucide-svelte@0.513.0:
+    resolution: {integrity: sha512-RLHtrFZM+v9AmO24Q+WqsY+khaB2lNXVDpSzJ5NcOTi0eo4Wk93EtoetHMm3NEytTJ23HHeELw64TDZdyNrsHw==}
+    peerDependencies:
+      svelte: ^3 || ^4 || ^5.0.0-next.42
 
   magic-string@0.30.17:
     resolution: {integrity: sha512-sNPKHvyjVf7gyjwS4xGTaW/mCnF8wnjtifKBEhxfZ7E/S8tQ0rssrwGNn6q8JH/ohItJfSQp9mBtQYuTlH5QnA==}
@@ -1377,24 +1362,6 @@ packages:
       svelte: ^4.0.0 || ^5.0.0-next.0
       typescript: '>=5.0.0'
 
-  svelte-coordinate-conversion@0.1.9:
-    resolution: {integrity: sha512-9BBAoZ7U5psGxgYKd61DEFxou3MmWrW9xIGvgG1n+Jtg47ll/jpNYsiS8iy6fVu1Sfbq3TQF/cljqRKHwaOeeg==}
-
-  svelte-dnd-action@0.9.61:
-    resolution: {integrity: sha512-xj0jZNdV44MAMbdGIAuBYEombmK7A7ticemOtdR5ErWw0f3IxcfcnrRjlYEK0rRjsahVsU+VdGUMwjPVyXrSrA==}
-    peerDependencies:
-      svelte: '>=3.23.0 || ^5.0.0-next.0'
-
-  svelte-drag-and-drop-actions@0.1.35:
-    resolution: {integrity: sha512-v2XtENssLfX5BE41E5653emXSTHd1hHtEXtB2k8PbTQ0jC0iB/WdEx9SwWesoKXRLcvLN7WLDVnmuSB3g3BIeg==}
-
-  svelte-drag-and-drop-actions@1.0.2:
-    resolution: {integrity: sha512-0T0Z0v5NFiPZlzP5/SrWnbDWCPSIZtyn07H7IwVgUku5v6A95FRySWhbGrBn0b/y+4oayh+VmkU2TqMEcoitTw==}
-
-  svelte-drag@3.1.0:
-    resolution: {integrity: sha512-l3XwToVhHcVultoPhDMr+Z7EmORl0Jac2IX0cAwFmr/SKfZ952xQP/WSS7/Kdu4Nn49mdskViMhsw3zh4RoBRw==}
-    deprecated: Instead use @neodrag/svelte
-
   svelte-eslint-parser@1.2.0:
     resolution: {integrity: sha512-mbPtajIeuiyU80BEyGvwAktBeTX7KCr5/0l+uRGLq1dafwRNrjfM5kHGJScEBlPG3ipu6dJqfW/k0/fujvIEVw==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
@@ -1403,9 +1370,6 @@ packages:
     peerDependenciesMeta:
       svelte:
         optional: true
-
-  svelte-grid@5.1.2:
-    resolution: {integrity: sha512-Suwgb+L3LALhTyA7z4vn87UOJ+xBY6EeKa6MdWqDv/lZOtQgIZ21ry/I6txIn9IC0p8of4AiOXupkSMcZ+DEug==}
 
   svelte@5.33.14:
     resolution: {integrity: sha512-kRlbhIlMTijbFmVDQFDeKXPLlX1/ovXwV0I162wRqQhRcygaqDIcu1d/Ese3H2uI+yt3uT8E7ndgDthQv5v5BA==}
@@ -1442,9 +1406,6 @@ packages:
     engines: {node: '>=18.12'}
     peerDependencies:
       typescript: '>=4.8.4'
-
-  tslib@2.8.1:
-    resolution: {integrity: sha512-oJFu94HQb+KVduSUQL7wnpmqnfmLsOA/nAh6b6EH0wCEoK0/mPeXU6c3wKDV83MkOuHPRHtSXKKU99IBazS/2w==}
 
   type-check@0.4.0:
     resolution: {integrity: sha512-XleUoc9uwGXqjWwXaUTZAmzMcFZ5858QA2vvx1Ur5xIcixXIP+8LnFDgRplU30us6teqdlskFfu+ae4K79Ooew==}
@@ -1845,10 +1806,6 @@ snapshots:
     transitivePeerDependencies:
       - bufferutil
       - utf-8-validate
-
-  '@svelte-put/resize@4.0.0(svelte@5.33.14)':
-    dependencies:
-      svelte: 5.33.14
 
   '@sveltejs/acorn-typescript@1.0.5(acorn@8.14.1)':
     dependencies:
@@ -2395,8 +2352,6 @@ snapshots:
 
   isexe@2.0.0: {}
 
-  javascript-interface-library@0.1.14: {}
-
   jiti@2.4.2: {}
 
   js-yaml@4.1.0:
@@ -2480,6 +2435,10 @@ snapshots:
   lodash.isplainobject@4.0.6: {}
 
   lodash.merge@4.6.2: {}
+
+  lucide-svelte@0.513.0(svelte@5.33.14):
+    dependencies:
+      svelte: 5.33.14
 
   magic-string@0.30.17:
     dependencies:
@@ -2677,26 +2636,6 @@ snapshots:
     transitivePeerDependencies:
       - picomatch
 
-  svelte-coordinate-conversion@0.1.9: {}
-
-  svelte-dnd-action@0.9.61(svelte@5.33.14):
-    dependencies:
-      svelte: 5.33.14
-
-  svelte-drag-and-drop-actions@0.1.35:
-    dependencies:
-      javascript-interface-library: 0.1.14
-      svelte-coordinate-conversion: 0.1.9
-
-  svelte-drag-and-drop-actions@1.0.2:
-    dependencies:
-      javascript-interface-library: 0.1.14
-      svelte-coordinate-conversion: 0.1.9
-      svelte-drag-and-drop-actions: 0.1.35
-      tslib: 2.8.1
-
-  svelte-drag@3.1.0: {}
-
   svelte-eslint-parser@1.2.0(svelte@5.33.14):
     dependencies:
       eslint-scope: 8.3.0
@@ -2707,8 +2646,6 @@ snapshots:
       postcss-selector-parser: 7.1.0
     optionalDependencies:
       svelte: 5.33.14
-
-  svelte-grid@5.1.2: {}
 
   svelte@5.33.14:
     dependencies:
@@ -2756,8 +2693,6 @@ snapshots:
   ts-api-utils@2.1.0(typescript@5.8.3):
     dependencies:
       typescript: 5.8.3
-
-  tslib@2.8.1: {}
 
   type-check@0.4.0:
     dependencies:

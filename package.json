@@ -44,10 +44,6 @@
 	"dependencies": {
 		"@supabase/ssr": "^0.6.1",
 		"@supabase/supabase-js": "^2.49.10",
-		"@svelte-put/resize": "^4.0.0",
-		"svelte-dnd-action": "^0.9.61",
-		"svelte-drag": "^3.1.0",
-		"svelte-drag-and-drop-actions": "^1.0.2",
-		"svelte-grid": "^5.1.2"
+		"lucide-svelte": "^0.513.0"
 	}
 }
