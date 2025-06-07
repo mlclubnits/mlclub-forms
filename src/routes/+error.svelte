@@ -1,1 +1,0 @@
-It looks like you have discovered the way to nothing.<br>Go to the <a href="/test">create page</a> to start over.
