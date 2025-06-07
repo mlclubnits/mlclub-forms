@@ -26,7 +26,7 @@ export const actions: Actions = {
 		const supabase = createSupabaseServerClient(event);
 		const { data, error } = await supabase
 			.from('forms') // ← your Supabase table name
-			.insert([{ form_data: parsed }]);
+			.insert([{ form_data: parsed.formItems, creator_email: parsed.user.email, form_hash: parsed.user.random }]);
 
 		if (error) {
 			console.error('Supabase insert error:', error);

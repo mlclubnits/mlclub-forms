@@ -1,6 +1,32 @@
 <script lang="ts">
 	import { Trash2 } from 'lucide-svelte';
 
+	export let data: { userdata?: { email?: string; full_name?: string } } = {};
+	console.log(data.userdata?.email);
+	let usermail = data.userdata?.email || 'Guest';
+	let datetime = Number(new Date());
+	function randomString(length: number): string {
+		const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-~_';
+		let result = '';
+		for (let i = 0; i < length; i++) {
+			result += chars.charAt(Math.floor(Math.random() * chars.length));
+		}
+		return result;
+	}
+	let formData = JSON.stringify(
+		{
+			user: {
+				email: usermail,
+				full_name: data.userdata?.full_name || 'Guest User',
+				datetime: datetime,
+				random: randomString(20)
+			},
+			formItems: []
+		},
+		null,
+		2
+	);
+
 	// Predefined interfaces (do not modify)
 	interface Section {
 		id: number;
@@ -179,7 +205,19 @@
 	// REACTIVE JSON OUTPUT
 	// -------------------------
 	// formData is always up-to-date with formItems
-	$: formData = JSON.stringify(formItems, null, 2);
+	$: formData = JSON.stringify(
+		{
+			user: {
+				email: usermail,
+				full_name: data.userdata?.full_name || 'Guest User',
+				datetime: datetime,
+				random: randomString(20)
+			},
+			formItems
+		},
+		null,
+		2
+	);
 </script>
 
 <section class="flex w-full flex-col items-center p-4">
@@ -387,7 +425,7 @@
 								{#if item.photo}
 									<img
 										src={item.photo}
-										alt="Item Photo"
+										alt="Item"
 										class="mt-2 h-24 w-auto object-cover"
 									/>
 								{/if}
