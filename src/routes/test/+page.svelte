@@ -210,8 +210,8 @@
 			user: {
 				email: usermail,
 				full_name: data.userdata?.full_name || 'Guest User',
-				datetime: datetime,
-				random: randomString(20)
+				closeTime: new Date(Date.now() + 3600000).toISOString(), // 1 hour later
+				random: randomString(20),
 			},
 			formItems
 		},

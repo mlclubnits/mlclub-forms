@@ -20,7 +20,7 @@ async function getPostFromDatabase(slug: string, event: Parameters<PageServerLoa
     const supabase = createSupabaseServerClient(event);
     const { data, error } = await supabase
         .from('forms')
-        .select('form_data, creator_email, form_hash')
+        .select('form_data, creator_email, form_hash, formCloseTime')
         .eq('form_hash', slug)
         .single();
 
@@ -29,5 +29,9 @@ async function getPostFromDatabase(slug: string, event: Parameters<PageServerLoa
         return null;
     }
 
-    return data;
+    if (data.formCloseTime && new Date(data.formCloseTime) > new Date()) {
+        return data;
+    } else {
+        return null;
+    }
 }

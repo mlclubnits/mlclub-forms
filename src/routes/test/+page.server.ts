@@ -16,17 +16,17 @@ export const actions: Actions = {
 		// 2️⃣ Parse JSON
 		let parsed;
 		try {
-            parsed = JSON.parse(raw);
-		} catch (e) {
-            return fail(400, { error: 'Invalid JSON in formItems' });
+			parsed = JSON.parse(raw);
+		} catch {
+			return fail(400, { error: 'Invalid JSON in formItems' });
 		}
         
 		// 3️⃣ Insert into Supabase
         console.log(parsed);
 		const supabase = createSupabaseServerClient(event);
-		const { data, error } = await supabase
+		const { error } = await supabase
 			.from('forms') // ← your Supabase table name
-			.insert([{ form_data: parsed.formItems, creator_email: parsed.user.email, form_hash: parsed.user.random }]);
+			.insert([{ form_data: parsed.formItems, creator_email: parsed.user.email, form_hash: parsed.user.random, formCloseTime: parsed.user.closeTime }]);
 
 		if (error) {
 			console.error('Supabase insert error:', error);
