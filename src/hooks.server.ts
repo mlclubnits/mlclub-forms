@@ -18,5 +18,12 @@ export const handle: Handle = async ({ event, resolve }) => {
 	event.locals.session = session;
 	event.locals.user = user ?? null;
 
+	if (session) {
+		// If no session, redirect to login or home
+		if (event.url.pathname.startsWith('/auth')) {
+			return Response.redirect(new URL('/', event.url), 303);
+		}
+	}
+
 	return resolve(event);
 };
