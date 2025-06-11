@@ -14,7 +14,7 @@
 	let activeTab: 'forms' | 'shared' = 'forms';
 </script>
 
-<div class="mb-4 ml-2 text-xl font-bold">Create your own form here</div>
+<div class="mb-4 ml-2 pt-4 text-xl font-bold">Create your own form here</div>
 
 <div class="mr-3 mb-8 ml-3 flex rounded-xl bg-white p-5 shadow-md sm:w-full md:mb-0 md:w-1/3">
 	<button
@@ -22,7 +22,7 @@
 		class="m-0 w-full cursor-pointer border-none bg-transparent p-0 text-left"
 		on:click={() => goto('/create')}
 	>
-		Create Form
+		Create New Form
 	</button>
 </div>
 

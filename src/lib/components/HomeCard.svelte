@@ -82,7 +82,7 @@
 	</button>
 
 	<!-- Form Content -->
-	<div class="relative z-5 w-full p-5 text-left">
+	<div class="relative z-5 w-full px-5 pb-4 pt-2 text-left">
 		<div class="mb-2 flex items-center justify-between">
 			<button class="text-md font-semibold" onclick={() => goto(`/create/${formHash}`)}>
 				{formName || 'Untitled Form'}

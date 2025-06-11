@@ -233,8 +233,7 @@
 
 <section class="flex w-full flex-col items-center p-4">
 	<div class="flex w-full justify-between">
-		<input type="text" class="w-auto border-none bg-transparent pb-1 text-2xl font-bold" bind:value={data.form_name} />
-		
+		<input type="text" class="w-auto border-none bg-transparent border border-b-neutral-600 !border-b pb-1 text-2xl font-bold" bind:value={data.form_name} />
 	</div>
 
 	{#if data.formCloseTime}
