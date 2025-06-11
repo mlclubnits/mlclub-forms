@@ -7,7 +7,7 @@
 </script>
 
 <div class="mx-7 sm:mx-10 md:mx-16 lg:mx-20 xl:mx-40 2xl:mx-52">
-	{#if page.url.pathname === '/' || page.url.pathname.startsWith('/create') || page.url.pathname.startsWith('/form-builder/') || page.url.pathname.startsWith('/auth')}
+	{#if page.url.pathname === '/' || page.url.pathname.startsWith('/create') || page.url.pathname.startsWith('/form-builder/') || page.url.pathname.startsWith('/auth') || page.url.pathname.startsWith('/profile')}
 		<div
 			aria-hidden="true"
 			class="fixed inset-0 -z-10 m-auto grid h-max w-full grid-cols-2 -space-x-52 opacity-40 dark:opacity-20"

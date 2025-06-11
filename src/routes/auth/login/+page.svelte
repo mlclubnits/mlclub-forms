@@ -18,20 +18,19 @@
 		alert('Login successful!');
 		// Add your actual login logic here.
 	}
+	export let form;
 </script>
 
 <section class="">
 	<div class="relative mx-auto flex w-full max-w-xl flex-col justify-center p-8 py-24">
 		<div class="">
-			<form
-				class="w-full rounded-xl bg-white p-8 shadow-lg lg:p-10"
-				method="POST"
-			>
+			<form class="w-full rounded-xl bg-white p-8 shadow-lg lg:p-10" method="POST">
 				<div class="space-y-3 py-2">
 					<label for="login_email" class="text-md block text-gray-700">Email</label>
 					<input
 						type="email"
 						id="login_email"
+						name="email"
 						bind:value={loginEmail}
 						class="text-md block h-12 w-full rounded-lg border-0 bg-gray-100 px-4 py-3 text-blue-500 placeholder-gray-500 focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:outline-none focus:ring-inset"
 						placeholder="Enter your email"
@@ -48,6 +47,7 @@
 						<input
 							type={showPassword ? 'text' : 'password'}
 							id="login_password"
+							name="password"
 							bind:value={loginPassword}
 							class="block h-12 w-full rounded-lg border-0 bg-gray-100 px-4 py-3 text-lg text-blue-500 placeholder-gray-500 focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:outline-none focus:ring-inset"
 							placeholder="Enter your password"
@@ -68,6 +68,9 @@
 					</p>
 					{#if loginPassword && !passwordPattern.test(loginPassword)}
 						<p class="mt-1 text-sm text-red-500">Password does not meet requirements</p>
+					{/if}
+					{#if form?.message}
+						<p>{form.message}</p>
 					{/if}
 				</div>
 
