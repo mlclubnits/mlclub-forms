@@ -4,6 +4,9 @@ import type { PageServerLoad, Actions, RequestEvent } from './$types';
 import { createSupabaseServerClient } from '$lib/supabase';
 
 export const load: PageServerLoad = async (event) => {
+    if (!event.locals.user) {
+        throw svelteError(401, 'Unauthorized');
+    }
     const slug = event.params.slug;
     if (!slug) {
         throw svelteError(404, 'Not found');
@@ -17,7 +20,8 @@ export const load: PageServerLoad = async (event) => {
             creator_email: post.creator_email,
             form_name: post.form_name,
             form_hash: post.form_hash,
-            formCloseTime: post.formCloseTime
+            formCloseTime: post.formCloseTime,
+            backgroundSettings: post.backgroundSettings
         };
     }
 
@@ -40,6 +44,7 @@ export const actions: Actions = {
                 closeTime: string;
             };
             formItems: unknown[];
+            backgroundSettings: unknown[];
         }
         let parsed: ParsedFormItems;
         try {
@@ -63,7 +68,8 @@ export const actions: Actions = {
         const updateObj = {
             form_data: parsed.formItems,
             form_name: parsed.user.form_name, // assuming you want to save this too
-            formCloseTime: parsed.user.closeTime
+            formCloseTime: parsed.user.closeTime,
+            backgroundSettings: parsed.backgroundSettings
         };
 
         const { data: updatedRow, error: updateError } = await supabase
@@ -85,19 +91,68 @@ export const actions: Actions = {
 
 async function getPostFromDatabase(slug: string, event: RequestEvent) {
     const supabase = createSupabaseServerClient(event);
-    const { data, error: fetchError } = await supabase
+    const user = event.locals.user;
+
+    if (!user) {
+        console.error('User not logged in');
+        return null;
+    }
+
+    // Fetch form data
+    const { data: formData, error: fetchError } = await supabase
         .from('forms')
-        .select('form_data, creator_email, form_name, form_hash, formCloseTime')
+        .select('form_data, creator_email, form_name, form_hash, formCloseTime, backgroundSettings')
         .eq('form_hash', slug)
         .single();
 
     if (fetchError) {
-        console.error('Error fetching form:', fetchError);
+        console.error('Error fetching form:', fetchError.message);
         return null;
     }
-    if (!data) {
+    if (!formData) {
         return null;
     }
-    console.log(data)
-    return data;
+
+    // Check access: either creator or shared
+    const isCreator = formData.creator_email === user.email;
+
+    let isShared = false;
+
+    if (!isCreator) {
+        const { data: sharedRecords, error: shareError } = await supabase
+            .from('forms-access-relation')
+            .select('shared_email')
+            .eq('form_hash', slug)
+            .eq('shared_email', user.email);
+
+        if (shareError) {
+            console.error('Error checking shared access:', shareError.message);
+            return null;
+        }
+
+        isShared = sharedRecords && sharedRecords.length > 0;
+    }
+
+    if (!isCreator && !isShared) {
+        console.warn('Access denied: not creator or shared user');
+        return null;
+    }
+
+    // Optionally: fetch all shared emails (for UI display or edit)
+    const { data: sharedRelations, error: relationError } = await supabase
+        .from('forms-access-relation')
+        .select('shared_email')
+        .eq('form_hash', slug);
+
+    if (relationError) console.log("Some error occured: ", relationError);
+
+    const shared_with = sharedRelations?.map((item) => item.shared_email) || [];
+
+    // Return data
+    return {
+        ...formData,
+        shared_with
+    };
 }
+
+

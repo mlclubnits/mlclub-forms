@@ -1,5 +1,5 @@
 // src/routes/dashboard/+page.server.ts
-import { redirect, error } from '@sveltejs/kit';
+import { error } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 import { createSupabaseServerClient } from '$lib/supabase.js';
 
@@ -12,7 +12,7 @@ export const load: PageServerLoad = async (event) => {
 	const supabase = createSupabaseServerClient(event);
 	const { data, error: fetchError } = await supabase
 		.from('forms')
-		.select('id, form_name, creator_email, form_hash, created_at')
+		.select('id, form_name, creator_email, form_hash, backgroundSettings, created_at')
 		.eq('creator_email', event.locals.user?.email);
 
 	if (fetchError) {
@@ -22,6 +22,7 @@ export const load: PageServerLoad = async (event) => {
 	}
 
 	return {
-		forms: data ?? []
+		forms: data ?? [],
+		usermail: event.locals.user?.email || 'null'
 	};
 };

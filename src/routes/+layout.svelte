@@ -6,7 +6,10 @@
 	let { children } = $props();
 </script>
 
-<div class="mx-7 sm:mx-10 md:mx-16 lg:mx-20 xl:mx-40 2xl:mx-52">
+<div class="">
+	{#if page.url.pathname === '/' || page.url.pathname.startsWith('/create') || page.url.pathname.startsWith('/form-builder/') || page.url.pathname.startsWith('/auth') || page.url.pathname.startsWith('/profile')}
+		<div class="mb-24"></div>
+	{/if}
 	{#if page.url.pathname === '/' || page.url.pathname.startsWith('/create') || page.url.pathname.startsWith('/form-builder/') || page.url.pathname.startsWith('/auth') || page.url.pathname.startsWith('/profile')}
 		<div
 			aria-hidden="true"
@@ -19,9 +22,14 @@
 				class="h-96 bg-gradient-to-r from-cyan-400 to-sky-300 blur-[106px] dark:to-indigo-600"
 			></div>
 		</div>
-		<div class="mb-24"></div>
 		<Navbar />
 	{/if}
-	{@render children()}
+	<main
+		class="mx-7 flex min-h-screen flex-grow flex-col sm:mx-10 md:mx-16 lg:mx-20 xl:mx-40 2xl:mx-52"
+	>
+		<div class="flex-1">
+			{@render children()}
+		</div>
+	</main>
+	<Footer />
 </div>
-<Footer />

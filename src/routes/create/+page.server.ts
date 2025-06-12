@@ -26,6 +26,15 @@ export const load = async (event) => {
 			items: []
 		}
 	];
+	const backgroundSettings = [
+		{
+			backgroundColor: '#ffffff',
+			useGradient: false,
+			gradientDirection: 'to-r',
+			gradientColor1: '#fuchsia-400',
+			gradientColor2: '#purple-600'
+		}
+	];
 
 	const { error } = await supabase
 		.from('forms')
@@ -33,7 +42,8 @@ export const load = async (event) => {
 			form_hash: hash,
 			form_data: formData,
 			creator_email: email,
-            formCloseTime: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString() // 1 week from now
+            formCloseTime: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 1 week from now
+			backgroundSettings: backgroundSettings
 		});
 
 	if (error) {

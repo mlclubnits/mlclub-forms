@@ -1,14 +1,39 @@
 <script lang="ts">
 	import { supabase } from '$lib/supabase';
 	import { goto, invalidate } from '$app/navigation';
-	import { Delete, Edit, Share2, Trash2 } from 'lucide-svelte';
 
-	// Action to detect clicks outside a node
+	// Props (from joined data)
+	export let id: number;
+	export let formName: string | null;
+	export let createdAt: string;
+	export let formHash: string;
+	export let backgroundSettings: {
+		useGradient: boolean;
+		backgroundColor: string;
+		gradientDirection: string;
+		gradientColor1: string;
+		gradientColor2: string;
+	}[];
+	export let userEmail: string; // Logged in user's email
+	export let creatorEmail: string; // Form creator's email
+
+	let isOwner = userEmail === creatorEmail;
+
+	// Rename/Delete/Share States
+	let showMenu = false;
+	let showRename = false;
+	let showDeleteConfirm = false;
+	let showShareDialog = false;
+	let newName = formName || '';
+	let menuRef: HTMLElement;
+
+	let sharedEmails: string[] = [];
+	let newEmail = '';
+
+	// Click Outside
 	export function clickOutside(node: HTMLElement, callback: () => void) {
 		const handleClick = (event: MouseEvent) => {
-			if (!node.contains(event.target as Node)) {
-				callback();
-			}
+			if (!node.contains(event.target as Node)) callback();
 		};
 		document.addEventListener('mousedown', handleClick, true);
 		return {
@@ -17,33 +42,6 @@
 			}
 		};
 	}
-
-	export let id: number;
-	export let formName: string | null;
-	export let createdAt: string;
-	export let formHash: string;
-	export let userEmail: string;
-	export let backgroundSettings: {
-		useGradient: boolean;
-		backgroundColor: string;
-		gradientDirection: string;
-		gradientColor1: string;
-		gradientColor2: string;
-	}[];
-	console.log(
-		backgroundSettings[0]?.useGradient,
-		backgroundSettings[0]?.backgroundColor,
-		backgroundSettings[0]?.gradientDirection,
-		backgroundSettings[0]?.gradientColor1,
-		backgroundSettings[0]?.gradientColor2
-	);
-
-	let showMenu = false;
-	let showRename = false;
-	let showDeleteConfirm = false;
-	let newName = formName || '';
-
-	let menuRef: HTMLElement;
 
 	function toggleMenu() {
 		showMenu = !showMenu;
@@ -58,10 +56,7 @@
 	async function submitRename() {
 		const { error } = await supabase.from('forms').update({ form_name: newName }).eq('id', id);
 		showRename = false;
-		if (error) {
-			console.error('Rename error:', error);
-			return;
-		}
+		if (error) return console.error('Rename error:', error);
 		window.location.reload();
 	}
 
@@ -71,38 +66,11 @@
 	}
 
 	async function confirmDelete() {
-		try {
-			// Step 1: Delete related entries from forms-access-relation
-			const { error: relationDeleteError } = await supabase
-				.from('forms-access-relation')
-				.delete()
-				.eq('form_hash', formHash); // formHash must be defined earlier
-
-			if (relationDeleteError) {
-				console.error('Error deleting from forms-access-relation:', relationDeleteError.message);
-				return;
-			}
-
-			// Step 2: Delete the main form from forms
-			const { error: formDeleteError } = await supabase.from('forms').delete().eq('id', id); // id must be defined earlier
-
-			showDeleteConfirm = false;
-
-			if (formDeleteError) {
-				console.error('Delete error:', formDeleteError.message);
-				return;
-			}
-
-			// Step 3: Reload on success
-			window.location.reload();
-		} catch (err) {
-			console.error('Unexpected error during form deletion:', err);
-		}
+		const { error } = await supabase.from('forms').delete().eq('id', id);
+		showDeleteConfirm = false;
+		if (error) return console.error('Delete error:', error);
+		window.location.reload();
 	}
-
-	let showShareDialog = false;
-	let sharedEmails: string[] = [];
-	let newEmail = '';
 
 	async function openShareDialog() {
 		const { data, error } = await supabase
@@ -111,11 +79,7 @@
 			.eq('id', id)
 			.single();
 
-		if (error) {
-			console.error('Error fetching shared emails:', error);
-			return;
-		}
-
+		if (error) return console.error('Error fetching shared emails:', error);
 		sharedEmails = data?.shared_with || [];
 		showShareDialog = true;
 		showMenu = false;
@@ -125,79 +89,22 @@
 		if (!newEmail || sharedEmails.includes(newEmail)) return;
 
 		const updatedEmails = [...sharedEmails, newEmail];
+		const { error } = await supabase.from('forms').update({ shared_with: updatedEmails }).eq('id', id);
 
-		// Update the 'forms' table
-		const { error: updateError } = await supabase
-			.from('forms')
-			.update({ shared_with: updatedEmails })
-			.eq('id', id);
-
-		if (updateError) {
-			console.error('Error updating forms:', updateError.message);
-			return;
-		}
-
-		console.log('Inserting into shared_forms:', {
-			form_hash: formHash,
-			user_email: userEmail,
-			shared_email: newEmail
-		});
-
-		// Insert into shared_forms
-		const { data: insertData, error: insertError } = await supabase
-			.from('forms-access-relation')
-			.insert({
-				form_hash: formHash,
-				creator_email: userEmail,
-				shared_email: newEmail
-			})
-			.select();
-
-		console.log('Insert data:', insertData);
-
-		if (insertError) {
-			console.error('Insert shared_forms error:', insertError.message);
-			return;
-		}
-
-		// Success
+		if (error) return console.error('Add email error:', error);
 		sharedEmails = updatedEmails;
 		newEmail = '';
 	}
 
 	async function removeEmail(emailToRemove: string) {
 		const updatedEmails = sharedEmails.filter((email) => email !== emailToRemove);
+		const { error } = await supabase.from('forms').update({ shared_with: updatedEmails }).eq('id', id);
 
-		// Update the 'forms' table
-		const { error: updateError } = await supabase
-			.from('forms')
-			.update({ shared_with: updatedEmails })
-			.eq('id', id);
-
-		if (updateError) {
-			console.error('Error updating forms:', updateError.message);
-			return;
-		}
-
-		// Delete from forms-access-relation
-		const { error: deleteError } = await supabase
-			.from('forms-access-relation') // or 'form_access_relation' if you renamed it
-			.delete()
-			.match({
-				form_hash: formHash,
-				creator_email: userEmail,
-				shared_email: emailToRemove
-			});
-
-		if (deleteError) {
-			console.error('Error deleting shared email relation:', deleteError.message);
-			return;
-		}
-
-		// Success
+		if (error) return console.error('Remove email error:', error);
 		sharedEmails = updatedEmails;
 	}
 </script>
+
 
 <!-- Card Component -->
 <div
@@ -261,19 +168,11 @@
 		<div
 			bind:this={menuRef}
 			use:clickOutside={() => (showMenu = false)}
-			class="absolute top-10 right-2 z-20 w-32 rounded bg-white shadow-lg"
+			class="absolute top-24 right-8 z-20 w-32 rounded bg-white shadow-lg"
 		>
-			<button class="w-full flex gap-3 px-4 py-2 text-left hover:bg-gray-100" onclick={handleRename}
-				><Edit class="h-4 mt-1" />
-				Rename</button
+			<button class="block w-full px-4 py-2 text-left hover:bg-gray-100" onclick={handleRename}
+				>Rename</button
 			>
-			<button class="flex gap-3 w-full px-4 py-2 text-left hover:bg-gray-100" onclick={handleDelete}
-				><Trash2 class="h-5 mt-1" />
-				Delete</button
-			>
-			<button class="flex gap-3 w-full px-4 py-2 text-left hover:bg-gray-100" onclick={openShareDialog}>
-				<Share2 class="h-5 mt-1" />Share
-			</button>
 		</div>
 	{/if}
 
@@ -288,7 +187,7 @@
 					{#if sharedEmails.length === 0}
 						<p class="text-sm text-gray-500">No emails shared yet.</p>
 					{:else}
-						<ul class="text-md flex list-disc flex-col gap-2 pl-5">
+						<ul class="list-disc flex flex-col gap-2 pl-5 text-md">
 							{#each sharedEmails as email}
 								<li class="flex items-center justify-between">
 									<span>{email}</span>
