@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { supabase } from '$lib/supabase';
 	import { goto, invalidate } from '$app/navigation';
-	import { Delete, Edit, Share2, Trash2 } from 'lucide-svelte';
+	import { Edit, Share2, Trash2 } from 'lucide-svelte';
 
 	// Action to detect clicks outside a node
 	export function clickOutside(node: HTMLElement, callback: () => void) {
@@ -30,13 +30,13 @@
 		gradientColor1: string;
 		gradientColor2: string;
 	}[];
-	console.log(
-		backgroundSettings[0]?.useGradient,
-		backgroundSettings[0]?.backgroundColor,
-		backgroundSettings[0]?.gradientDirection,
-		backgroundSettings[0]?.gradientColor1,
-		backgroundSettings[0]?.gradientColor2
-	);
+	// console.log(
+	// 	backgroundSettings[0]?.useGradient,
+	// 	backgroundSettings[0]?.backgroundColor,
+	// 	backgroundSettings[0]?.gradientDirection,
+	// 	backgroundSettings[0]?.gradientColor1,
+	// 	backgroundSettings[0]?.gradientColor2
+	// );
 
 	let showMenu = false;
 	let showRename = false;
@@ -137,11 +137,11 @@
 			return;
 		}
 
-		console.log('Inserting into shared_forms:', {
-			form_hash: formHash,
-			user_email: userEmail,
-			shared_email: newEmail
-		});
+		// console.log('Inserting into shared_forms:', {
+		// 	form_hash: formHash,
+		// 	user_email: userEmail,
+		// 	shared_email: newEmail
+		// });
 
 		// Insert into shared_forms
 		const { data: insertData, error: insertError } = await supabase
@@ -153,7 +153,7 @@
 			})
 			.select();
 
-		console.log('Insert data:', insertData);
+		// console.log('Insert data:', insertData);
 
 		if (insertError) {
 			console.error('Insert shared_forms error:', insertError.message);

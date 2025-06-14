@@ -84,7 +84,7 @@ export const actions: Actions = {
             return fail(500, { error: 'Failed to save form' });
         }
 
-        console.log('Update succeeded, updated row:', updatedRow);
+        // console.log('Update succeeded, updated row:', updatedRow);
         return { success: true };
     }
 };
@@ -144,7 +144,7 @@ async function getPostFromDatabase(slug: string, event: RequestEvent) {
         .select('shared_email')
         .eq('form_hash', slug);
 
-    if (relationError) console.log("Some error occured: ", relationError);
+    if (relationError) console.error("Some error occured: ", relationError);
 
     const shared_with = sharedRelations?.map((item) => item.shared_email) || [];
 

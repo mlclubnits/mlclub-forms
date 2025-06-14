@@ -35,7 +35,7 @@
 			}
 		]
 	};
-	console.log(data);
+	// console.log(data);
 	export let form: { success?: boolean; error?: string };
 
 	interface Section {
@@ -321,7 +321,7 @@
 
 	// If you want to re-fetch server data after success: (no change here)
 	$: if (browser && form?.success) {
-		console.log('Form saved; you may reload or trust local state is current.');
+		// console.log('Form saved; you may reload or trust local state is current.');
 	}
 </script>
 

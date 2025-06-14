@@ -22,7 +22,7 @@ export const actions: Actions = {
 		}
         
 		// 3️⃣ Insert into Supabase
-        console.log(parsed);
+        // console.log(parsed);
 		const supabase = createSupabaseServerClient(event);
 		const { error } = await supabase
 			.from('forms') // ← your Supabase table name

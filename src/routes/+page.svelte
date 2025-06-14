@@ -20,7 +20,7 @@
 			};
 		}[];
 	};
-	console.log(data.forms.map((form) => form.backgroundSettings));
+	// console.log(data.forms.map((form) => form.backgroundSettings));
 
 	let activeTab: 'forms' | 'shared' = 'forms';
 </script>

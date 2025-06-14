@@ -2,7 +2,7 @@
 	import { Trash2 } from 'lucide-svelte';
 
 	export let data: { userdata?: { email?: string; full_name?: string } } = {};
-	console.log(data.userdata?.email);
+	// console.log(data.userdata?.email);
 	let usermail = data.userdata?.email || 'Guest';
 	let datetime = Number(new Date());
 	function randomString(length: number): string {
