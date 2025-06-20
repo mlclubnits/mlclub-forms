@@ -72,7 +72,7 @@ export const actions: Actions = {
             backgroundSettings: parsed.backgroundSettings
         };
 
-        const { data: updatedRow, error: updateError } = await supabase
+        const { error: updateError } = await supabase
             .from('forms')
             .update(updateObj)
             .eq('form_hash', parsed.user.form_hash)

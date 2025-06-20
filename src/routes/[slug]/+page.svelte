@@ -84,12 +84,12 @@
 		form.append('formItems', JSON.stringify(payload));
 
 		const res = await fetch('', { method: 'POST', body: form });
-		// if (res.ok) {
-		// 	alert('Submitted!');
-		// } else {
-		// 	console.error(await res.text());
-		// 	alert('Error—check console.');
-		// }
+		if (res.ok) {
+			alert('Submitted!');
+		} else {
+			console.error(await res.text());
+			alert('Error—check console.');
+		}
 	}
 	// console.log(data.backgroundSettings[0]);
 	let useGradient = data.backgroundSettings[0].useGradient;
@@ -99,7 +99,7 @@
 	let backgroundColor = data.backgroundSettings[0].backgroundColor;
 </script>
 
-<h1 class="mb-6 text-2xl font-bold">{data.form_name}</h1>
+<h1 class="mb-6 text-2xl font-bold mt-10 text-center md:text-left">{data.form_name}</h1>
 <div class="h-screen w-screen fixed -z-1 top-0 left-0" style={
 		useGradient
 			? `background: linear-gradient(${gradientColor1}, ${gradientColor2});`
@@ -161,9 +161,20 @@
 									</label>
 								{/each}
 							</div>
-						{:else if item.itemType === 'file'}
+						{:else if item.itemType === 'image'}
 							<input
 								type="file"
+								accept=".png,.jpg,.jpeg"
+								on:change={(e) => {
+									const f = (e.target as HTMLInputElement).files?.[0];
+									sectionResp.questions[item.id].uploadedDocLink = f?.name ?? '';
+								}}
+								class="text-sm"
+							/>
+						{:else if item.itemType === 'document'}
+							<input
+								type="file"
+								accept=".pdf,.doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
 								on:change={(e) => {
 									const f = (e.target as HTMLInputElement).files?.[0];
 									sectionResp.questions[item.id].uploadedDocLink = f?.name ?? '';

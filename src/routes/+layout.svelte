@@ -25,7 +25,7 @@
 		<Navbar />
 	{/if}
 	<main
-		class="mx-7 flex min-h-screen flex-grow flex-col sm:mx-10 md:mx-16 lg:mx-20 xl:mx-40 2xl:mx-52"
+		class="mx-5 flex min-h-screen flex-grow flex-col sm:mx-10 md:mx-16 lg:mx-20 xl:mx-40 2xl:mx-52"
 	>
 		<div class="flex-1">
 			{@render children()}

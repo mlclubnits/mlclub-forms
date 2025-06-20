@@ -23,13 +23,8 @@
 	export let createdAt: string;
 	export let formHash: string;
 	export let userEmail: string;
-	export let backgroundSettings: {
-		useGradient: boolean;
-		backgroundColor: string;
-		gradientDirection: string;
-		gradientColor1: string;
-		gradientColor2: string;
-	}[];
+	export let backgroundSettings;
+	// console.log(backgroundSettings)
 	// console.log(
 	// 	backgroundSettings[0]?.useGradient,
 	// 	backgroundSettings[0]?.backgroundColor,
@@ -329,11 +324,11 @@
 				<h3 class="mb-4 text-lg font-medium">Rename Form</h3>
 				<input type="text" class="mb-4 w-full rounded border px-3 py-2" bind:value={newName} />
 				<div class="flex justify-end space-x-2">
-					<button class="rounded bg-gray-200 px-4 py-2" onclick={() => (showRename = false)}
+					<button class="rounded-lg text-sm font-semibold bg-gray-200 px-4 py-2" onclick={() => (showRename = false)}
 						>Cancel</button
 					>
 					<button
-						class="rounded bg-sky-100 px-4 py-2 font-semibold text-blue-600"
+						class="rounded-lg bg-sky-100 text-sm px-4 py-2 font-semibold text-blue-600"
 						onclick={submitRename}>Submit</button
 					>
 				</div>

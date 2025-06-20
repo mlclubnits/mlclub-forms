@@ -2,7 +2,22 @@
 	import { onMount } from 'svelte';
 	import { browser } from '$app/environment';
 	import { Trash2, GripVertical, GripHorizontal, Share, Link, Copy } from 'lucide-svelte'; // Import GripVertical for drag handle
+	import QRCode from 'qrcode';
 
+	let text: string = '';
+	let qrCodeDataUrl: string = '';
+
+	// Generate QR Code
+	const generateQRCode = async () => {
+		try {
+			qrCodeDataUrl = await QRCode.toDataURL(text);
+		} catch (err) {
+			console.error('Failed to generate QR Code', err);
+		}
+	};
+
+	// Initial QR generation
+	onMount(generateQRCode);
 	// `data` comes from load(); `form` comes from action result
 	export let data: {
 		form_data: any; // expected array of sections
@@ -35,6 +50,7 @@
 			}
 		]
 	};
+	text = 'https://forms.mlclubnits.com/' + data.form_hash;
 	// console.log(data);
 	export let form: { success?: boolean; error?: string };
 
@@ -308,7 +324,7 @@
 		null,
 		2
 	);
-    $:copied = false;
+	$: copied = false;
 	async function copyText() {
 		try {
 			await navigator.clipboard.writeText('https://forms.mlclubnits.com/' + form_hash);
@@ -323,9 +339,87 @@
 	$: if (browser && form?.success) {
 		// console.log('Form saved; you may reload or trust local state is current.');
 	}
+
+	import { writable } from 'svelte/store';
+
+	const uploadingItemIndex = writable<number | null>(null);
+	const cloudinaryUpload = async (file: File): Promise<string | null> => {
+		const formData = new FormData();
+		formData.append('file', file);
+		formData.append('upload_preset', 'your_upload_preset'); // ← replace
+		formData.append('cloud_name', 'your_cloud_name'); // ← replace
+		formData.append('folder', 'your_folder_name'); // optional
+
+		try {
+			const res = await fetch('https://api.cloudinary.com/v1_1/your_cloud_name/image/upload', {
+				method: 'POST',
+				body: formData
+			});
+			const data = await res.json();
+			return data.secure_url;
+		} catch (err) {
+			console.error('Cloudinary Upload Failed:', err);
+			return null;
+		}
+	};
+
+	async function handleSubmit() {
+		// Deep process items inside each section
+		const updatedFormItems = await Promise.all(
+			formItems.map(async (section) => {
+				const updatedItems = await Promise.all(
+					section.items.map(async (item) => {
+						if (item.itemType === 'file' || item.itemType === 'image') {
+							if ((item as any).responseFile instanceof File) {
+								const url = await cloudinaryUpload((item as any).responseFile);
+								return {
+									...item,
+									response: url // replace with URL
+								};
+							}
+						}
+						return item;
+					})
+				);
+				return {
+					...section,
+					items: updatedItems
+				};
+			})
+		);
+
+		const payload = {
+			user: {
+				email: usermail,
+				form_hash: form_hash,
+				form_name: form_name,
+				closeTime: closeTime
+			},
+			formItems: updatedFormItems,
+			backgroundSettings: [
+				{
+					useGradient,
+					backgroundColor: currentBackgroundColor,
+					gradientDirection,
+					gradientColor1,
+					gradientColor2
+				}
+			]
+		};
+
+		const formData = new FormData();
+		formData.append('formItems', JSON.stringify(payload));
+
+		const res = await fetch(window.location.pathname, {
+			method: 'POST',
+			body: formData
+		});
+
+		// handle response...
+	}
 </script>
 
-<section class="flex w-full flex-col items-center p-4">
+<section class="flex w-full flex-col items-center">
 	<div class="fixed top-0 -z-1 h-screen w-screen" style={backgroundStyle}></div>
 	<div class="flex w-full flex-col justify-between md:flex-row">
 		<input
@@ -344,11 +438,20 @@
 			placeholder="Close Time"
 		/>
 	</div>
-	<button on:click={copyText} class="max-w-screen mt-3 mx-5 cursor-pointer flex gap-2 rounded-md bg-gray-200 px-5 pt-2 pb-3">
-		<span class="max-w-auto overflow-auto">https://forms.mlclubnits.com/{form_hash}</span><Copy class="mt-1 h-5" />
+
+	<button
+		on:click={copyText}
+		class="mx-5 mt-3 flex max-w-screen cursor-pointer gap-2 rounded-md bg-gray-200 px-5 pt-2 pb-3"
+	>
+		<span class="max-w-auto overflow-auto">https://forms.mlclubnits.com/{form_hash}</span><Copy
+			class="mt-1 h-5"
+		/>
 	</button>
 	{#if copied}
 		Copied!
+	{/if}
+	{#if qrCodeDataUrl}
+		<img src={qrCodeDataUrl} alt="QR Code" class="mx-auto" />
 	{/if}
 
 	<div class="mt-2 mb-4 flex w-full flex-col items-center justify-end gap-4 md:flex-row">
@@ -395,7 +498,7 @@
 	<form class="flex w-full flex-col" method="POST">
 		{#each formItems as section, sectionIndex (section.id)}
 			<div
-				class="relative mb-6 flex w-full flex-col gap-2 rounded-lg border bg-[#f4f4f4b8] p-16 backdrop-blur-xs focus:border-0 focus:ring-0"
+				class="relative mb-6 flex w-full flex-col gap-2 rounded-lg border bg-[#f4f4f4b8] p-5 backdrop-blur-xs focus:border-0 focus:ring-0 md:p-16"
 			>
 				{#if formItems.length > 1}
 					<button
@@ -556,6 +659,16 @@
 											disabled
 										/>
 									</div>
+								{:else if item.itemType === 'image'}
+									<div class="mt-2">
+										<input
+											type="file"
+											accept="png,jpg,jpeg,webp"
+											placeholder={item.placeholder}
+											class="w-full rounded border px-2 py-1"
+											disabled
+										/>
+									</div>
 								{:else}
 									<p class="mt-2 text-red-600">Unknown item type: {item.itemType}</p>
 								{/if}
@@ -592,6 +705,13 @@
 					<button
 						type="button"
 						class="rounded bg-blue-500 px-3 py-1 text-white hover:bg-blue-600"
+						on:click={() => addItem(sectionIndex, 'image')}
+					>
+						Add Image Item
+					</button>
+					<button
+						type="button"
+						class="rounded bg-blue-500 px-3 py-1 text-white hover:bg-blue-600"
 						on:click={() => addItem(sectionIndex, 'option', 'radio', ['Option A', 'Option B'])}
 					>
 						Add Option Item
@@ -602,16 +722,16 @@
 
 		<button
 			type="button"
-			class="mb-6 cursor-pointer rounded px-4 py-2 text-white hover:bg-[rgba(20,20,20,0.38)]"
+			class="mb-6 cursor-pointer rounded bg-[rgba(20,20,20,0.2)] px-4 py-2 text-white"
 			on:click={addSection}
 		>
 			Add Section
 		</button>
 	</form>
 
-	<!-- <pre class="w-full max-w-md rounded border bg-gray-100 p-4 text-sm whitespace-pre-wrap">
+	<pre class="w-full max-w-md rounded border bg-gray-100 p-4 text-sm whitespace-pre-wrap">
 {formData}
-    </pre> -->
+    </pre>
 </section>
 
 <style>
