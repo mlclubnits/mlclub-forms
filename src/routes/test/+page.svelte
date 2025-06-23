@@ -1,41 +1,59 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
-	import QRCode from 'qrcode';
+  let fileToUpload: File | null = null;
+  let publicUrl = '';
+  let errorMsg = '';
 
-	let text: string = 'Hello from Svelte!';
-	let qrCodeDataUrl: string = '';
+  function onFileChange(e: Event) {
+    errorMsg = '';
+    const input = e.target as HTMLInputElement;
+    fileToUpload = input.files?.[0] || null;
+  }
 
-	// Generate QR Code
-	const generateQRCode = async () => {
-		try {
-			qrCodeDataUrl = await QRCode.toDataURL(text);
-		} catch (err) {
-			console.error('Failed to generate QR Code', err);
-		}
-	};
+  async function uploadAnyFile() {
+    errorMsg = '';
+    if (!fileToUpload) {
+      errorMsg = 'Select a file first!';
+      return;
+    }
 
-	// Initial QR generation
-	onMount(generateQRCode);
+    const formData = new FormData();
+    formData.append('file', fileToUpload);
+    formData.append('upload_preset', 'form_uploads');    
+    formData.append('folder', 'forms-platform');
+    // tell Cloudinary to auto-detect resource type
+    formData.append('resource_type', 'auto');            
+
+    try {
+      const res = await fetch(
+        `https://api.cloudinary.com/v1_1/db7rduqjv/auto/upload`,
+        { method: 'POST', body: formData }
+      );
+      const data = await res.json();
+      console.log('Cloudinary response:', data);
+
+      if (!res.ok) {
+        throw new Error(data.error?.message || `Upload failed ${res.status}`);
+      }
+
+      publicUrl = data.secure_url || data.url;
+    } catch (err) {
+      console.error(err);
+      errorMsg = err.message;
+    }
+  }
 </script>
 
-<div class="mx-auto max-w-md p-4 text-center">
-	<h2 class="mb-2 text-lg font-semibold">QR Code Generator</h2>
+<input 
+  type="file" 
+  on:change={onFileChange} 
+/>
+<button on:click={uploadAnyFile}>Upload File</button>
 
-	<input
-		type="text"
-		bind:value={text}
-		on:input={generateQRCode}
-		class="mb-4 w-full rounded border p-2"
-		placeholder="Enter text"
-	/>
+{#if errorMsg}
+  <p style="color: red">{errorMsg}</p>
+{/if}
 
-	{#if qrCodeDataUrl}
-		<img src={qrCodeDataUrl} alt="QR Code" class="mx-auto" />
-	{/if}
-</div>
-
-<style>
-	input {
-		font-size: 1rem;
-	}
-</style>
+{#if publicUrl}
+  <p>✅ Uploaded! Public URL:</p>
+  <a href={publicUrl} target="_blank" rel="noopener">{publicUrl}</a>
+{/if}

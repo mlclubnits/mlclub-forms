@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { browser } from '$app/environment';
-	import { Trash2, GripVertical, GripHorizontal, Share, Link, Copy } from 'lucide-svelte'; // Import GripVertical for drag handle
+	import { Trash2, GripVertical, GripHorizontal, Share, Link, Copy, Settings } from 'lucide-svelte'; // Import GripVertical for drag handle
 	import QRCode from 'qrcode';
 
 	let text: string = '';
@@ -279,6 +279,17 @@
 	let gradientColor1 = data.backgroundSettings?.[0]?.gradientColor1 ?? '#ff0031';
 	let gradientColor2 = data.backgroundSettings?.[0]?.gradientColor2 ?? '#7e5bef';
 
+	function updateTextColor(hexColor1: string, hexColor2: string, rotation: string) {
+		// Choose which color to use based on rotation
+		const selectedColor = rotation.includes('top') ? hexColor2 : hexColor1;
+
+		const rgb = hexToRgb(selectedColor);
+		if (rgb) {
+			const brightness = (rgb.r * 299 + rgb.g * 587 + rgb.b * 114) / 1000;
+			textColor = brightness > 128 ? '#000000' : '#ffffff';
+		}
+	}
+
 	// Dynamic background style generation (no change here)
 	let backgroundStyle = '';
 	$: {
@@ -294,6 +305,7 @@
 				'to-tl': 'to top left'
 			};
 			const dir = directions[gradientDirection] || 'to right';
+			updateTextColor(gradientColor1, gradientColor2, dir);
 			backgroundStyle = `background: linear-gradient(${dir}, ${gradientColor1}, ${gradientColor2});`;
 		} else {
 			backgroundStyle = `background: ${currentBackgroundColor};`;
@@ -340,54 +352,7 @@
 		// console.log('Form saved; you may reload or trust local state is current.');
 	}
 
-	import { writable } from 'svelte/store';
-
-	const uploadingItemIndex = writable<number | null>(null);
-	const cloudinaryUpload = async (file: File): Promise<string | null> => {
-		const formData = new FormData();
-		formData.append('file', file);
-		formData.append('upload_preset', 'your_upload_preset'); // ← replace
-		formData.append('cloud_name', 'your_cloud_name'); // ← replace
-		formData.append('folder', 'your_folder_name'); // optional
-
-		try {
-			const res = await fetch('https://api.cloudinary.com/v1_1/your_cloud_name/image/upload', {
-				method: 'POST',
-				body: formData
-			});
-			const data = await res.json();
-			return data.secure_url;
-		} catch (err) {
-			console.error('Cloudinary Upload Failed:', err);
-			return null;
-		}
-	};
-
 	async function handleSubmit() {
-		// Deep process items inside each section
-		const updatedFormItems = await Promise.all(
-			formItems.map(async (section) => {
-				const updatedItems = await Promise.all(
-					section.items.map(async (item) => {
-						if (item.itemType === 'file' || item.itemType === 'image') {
-							if ((item as any).responseFile instanceof File) {
-								const url = await cloudinaryUpload((item as any).responseFile);
-								return {
-									...item,
-									response: url // replace with URL
-								};
-							}
-						}
-						return item;
-					})
-				);
-				return {
-					...section,
-					items: updatedItems
-				};
-			})
-		);
-
 		const payload = {
 			user: {
 				email: usermail,
@@ -395,7 +360,7 @@
 				form_name: form_name,
 				closeTime: closeTime
 			},
-			formItems: updatedFormItems,
+			formItems: formItems,
 			backgroundSettings: [
 				{
 					useGradient,
@@ -417,65 +382,233 @@
 
 		// handle response...
 	}
+	let settingsOpen = true;
+	let openTab = 1;
+	let darkMode = true;
+	let fontSize = '16px';
+	let backgroundImage: string | null = null;
+
+	const activeClasses = 'border-b-2 border-blue-600 text-blue-600';
+	const inactiveClasses = 'text-gray-500 hover:text-blue-600';
+
+	function handleImageUpload(e: Event) {
+		const file = (e.target as HTMLInputElement).files?.[0];
+		if (file) {
+			const reader = new FileReader();
+			reader.onload = () => {
+				backgroundImage = reader.result as string;
+			};
+			reader.readAsDataURL(file);
+		}
+	}
+
+	function copyLink() {
+		navigator.clipboard.writeText(window.location.href);
+		alert('Link copied to clipboard!');
+	}
+
+	let textColor = '#000'; // default to black
+
+	$: {
+		const rgb = hexToRgb(currentBackgroundColor);
+		if (rgb) {
+			const brightness = (rgb.r * 299 + rgb.g * 587 + rgb.b * 114) / 1000;
+			textColor = brightness > 128 ? '#000000' : '#ffffff';
+		}
+	}
+
+	function hexToRgb(hex: string) {
+		hex = hex.replace('#', '');
+		if (hex.length === 3) {
+			hex = hex
+				.split('')
+				.map((c) => c + c)
+				.join('');
+		}
+		const bigint = parseInt(hex, 16);
+		return {
+			r: (bigint >> 16) & 255,
+			g: (bigint >> 8) & 255,
+			b: bigint & 255
+		};
+	}
 </script>
 
+<svelte:head>
+	<title>{form_name ? `${form_name} | ML CLUB NITS` : 'Untitled Form | ML CLUB NITS'}</title>
+</svelte:head>
+
 <section class="flex w-full flex-col items-center">
+	{#if settingsOpen}
+		<div
+			role="button"
+			aria-label="Close Settings Modal"
+			on:click={() => (settingsOpen = false)}
+			on:keydown={(e) => (e.key === 'Enter' || e.key === ' ') && (settingsOpen = false)}
+			class="fixed top-0 z-20 flex h-screen w-screen items-center justify-center bg-black/30 backdrop-blur-sm"
+			tabindex="0"
+		>
+			<div
+				role="dialog"
+				tabindex="0"
+				aria-modal="true"
+				aria-label="Settings Modal"
+				on:click|stopPropagation
+				on:keydown={(e) => {
+					if (e.key === 'Escape') settingsOpen = false;
+				}}
+				class="relative w-full max-w-3xl rounded-xl bg-white shadow-lg transition-all"
+			>
+				<!-- Close Button -->
+				<button
+					class="absolute top-4 right-4 text-xl text-gray-600 hover:text-red-500"
+					on:click={() => (settingsOpen = false)}
+					aria-label="Close Settings"
+				>
+					×
+				</button>
+
+				<!-- Tabs -->
+				<ul class="flex justify-center gap-4 border-b p-4">
+					{#each ['Background', 'Form Close', 'Share'] as label, idx}
+						<li>
+							<button
+								on:click={() => (openTab = idx + 1)}
+								class={`px-4 py-2 font-medium ${
+									openTab === idx + 1 ? activeClasses : inactiveClasses
+								}`}
+							>
+								{label}
+							</button>
+						</li>
+					{/each}
+				</ul>
+
+				<!-- Tab Content -->
+				<div class="max-h-[70vh] space-y-4 overflow-y-auto p-6">
+					{#if openTab === 1}
+						<!-- Background Settings -->
+						<div class="space-y-3">
+							<label class="flex items-center space-x-2">
+								<input type="checkbox" bind:checked={useGradient} />
+								<span>Use Gradient Background</span>
+							</label>
+
+							{#if useGradient}
+								<div class="flex flex-col gap-2">
+									<label for="gradientDirection">Gradient Direction:</label>
+									<select
+										id="gradientDirection"
+										bind:value={gradientDirection}
+										class="rounded border px-2 py-1"
+									>
+										<option value="to-t">To Top</option>
+										<option value="to-tr">To Top Right</option>
+										<option value="to-r">To Right</option>
+										<option value="to-br">To Bottom Right</option>
+										<option value="to-b">To Bottom</option>
+										<option value="to-bl">To Bottom Left</option>
+										<option value="to-l">To Left</option>
+										<option value="to-tl">To Top Left</option>
+									</select>
+									<label
+										>Gradient Color 1:
+										<input type="color" bind:value={gradientColor1} /></label
+									>
+									<label
+										>Gradient Color 2:
+										<input type="color" bind:value={gradientColor2} /></label
+									>
+								</div>
+							{:else}
+								<label
+									>Solid Color:
+									<input type="color" bind:value={currentBackgroundColor} /></label
+								>
+							{/if}
+
+							<label>
+								Upload Background Image:
+								<input type="file" accept="image/*" on:change={handleImageUpload} />
+							</label>
+							{#if backgroundImage}
+								<img src={backgroundImage} alt="Background preview" class="mt-2 h-24 rounded" />
+							{/if}
+						</div>
+						<!-- Form Close Time moved to its own tab below -->
+					{:else if openTab === 2}
+						<input
+							type="datetime-local"
+							class="mt-2 w-auto rounded border border-neutral-300 bg-white px-3 py-1 text-sm text-gray-700 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+							bind:value={closeTime}
+							on:change={(e) => {
+								closeTime = (e.target as HTMLInputElement).value;
+							}}
+							placeholder="Close Time"
+						/>
+					{:else if openTab === 3}
+						<!-- Share Tab -->
+						<div class="space-y-3">
+							<button
+								on:click={copyText}
+								class="mx-5 mt-3 flex max-w-screen cursor-pointer gap-2 rounded-md bg-gray-200 px-5 pt-2 pb-3"
+							>
+								<span class="max-w-auto overflow-auto"
+									>https://forms.mlclubnits.com/{form_hash}</span
+								><Copy class="mt-1 h-5" />
+							</button>
+							{#if copied}
+								Copied!
+							{/if}
+							{#if qrCodeDataUrl}
+								<img src={qrCodeDataUrl} alt="QR Code" class="mx-auto" />
+							{/if}
+							<div class="flex gap-4">
+								<a
+									href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}`}
+									target="_blank"
+									class="text-blue-600 hover:underline">Facebook</a
+								>
+								<a
+									href={`https://twitter.com/intent/tweet?url=${encodeURIComponent(window.location.href)}`}
+									target="_blank"
+									class="text-blue-400 hover:underline">Twitter</a
+								>
+								<a
+									href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(window.location.href)}`}
+									target="_blank"
+									class="text-blue-700 hover:underline">LinkedIn</a
+								>
+							</div>
+						</div>
+					{/if}
+				</div>
+			</div>
+		</div>
+	{/if}
+
 	<div class="fixed top-0 -z-1 h-screen w-screen" style={backgroundStyle}></div>
 	<div class="flex w-full flex-col justify-between md:flex-row">
 		<input
 			type="text"
 			class="w-auto border-0 border-b border-b-neutral-600 bg-transparent pb-1 text-2xl font-bold"
 			bind:value={data.form_name}
+			style="color: {textColor}; padding: 1rem;"
 			required
 		/>
-		<input
-			type="datetime-local"
-			class="mt-2 w-auto rounded border border-neutral-300 bg-white px-3 py-1 text-sm text-gray-700 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-			bind:value={closeTime}
-			on:change={(e) => {
-				closeTime = (e.target as HTMLInputElement).value;
+		<button
+			type="button"
+			class="rounded-md bg-white px-4 py-3"
+			on:click={() => {
+				settingsOpen = true;
 			}}
-			placeholder="Close Time"
-		/>
+			aria-label="Open Settings"
+		>
+			<Settings />
+		</button>
 	</div>
 
-	<button
-		on:click={copyText}
-		class="mx-5 mt-3 flex max-w-screen cursor-pointer gap-2 rounded-md bg-gray-200 px-5 pt-2 pb-3"
-	>
-		<span class="max-w-auto overflow-auto">https://forms.mlclubnits.com/{form_hash}</span><Copy
-			class="mt-1 h-5"
-		/>
-	</button>
-	{#if copied}
-		Copied!
-	{/if}
-	{#if qrCodeDataUrl}
-		<img src={qrCodeDataUrl} alt="QR Code" class="mx-auto" />
-	{/if}
-
 	<div class="mt-2 mb-4 flex w-full flex-col items-center justify-end gap-4 md:flex-row">
-		<label class="flex items-center space-x-2">
-			<input type="checkbox" bind:checked={useGradient} />
-			<span>Use Gradient</span>
-		</label>
-
-		{#if useGradient}
-			<select bind:value={gradientDirection} class="rounded border bg-white px-2 py-1">
-				<option value="to-t">To Top</option>
-				<option value="to-tr">To Top Right</option>
-				<option value="to-r">To Right</option>
-				<option value="to-br">To Bottom Right</option>
-				<option value="to-b">To Bottom</option>
-				<option value="to-bl">To Bottom Left</option>
-				<option value="to-l">To Left</option>
-				<option value="to-tl">To Top Left</option>
-			</select>
-			<input type="color" bind:value={gradientColor1} />
-			<input type="color" bind:value={gradientColor2} />
-		{:else}
-			<input type="color" bind:value={currentBackgroundColor} />
-		{/if}
 		<form method="POST">
 			<input type="hidden" name="formItems" value={formData} />
 
@@ -537,7 +670,7 @@
 					<ul class="mt-4 space-y-4">
 						{#each section.items as item, itemIndex (item.id)}
 							<li
-								class="relative flex flex-col rounded-lg bg-white px-10 py-7 shadow-sm transition-all duration-300
+								class="relative flex w-auto flex-col rounded-lg bg-white px-5 py-7 shadow-sm transition-all duration-300 md:px-10
                                 {isDragging && draggedItemIndex === itemIndex
 									? 'opacity-100'
 									: 'opacity-100'}"
@@ -556,7 +689,7 @@
 									<GripHorizontal size={20} />
 								</div>
 
-								<span class="top-2 left-2 flex text-gray-500">
+								<span class="top-2 flex text-gray-500">
 									{itemIndex + 1}.&nbsp;
 									<input
 										id="drag-item"
@@ -584,30 +717,32 @@
 
 								{#if item.itemType === 'option'}
 									{#each item.options as option, optIndex}
-										<div class="flex items-center space-x-2">
-											<input type={item.optionType} name={'opt-' + item.id} />
-											<input
-												type="text"
-												class="flex-1 border-b bg-transparent pb-1"
-												value={option}
-												on:input={(e) => {
-													const v = (e.target as HTMLInputElement).value;
-													formItems = formItems.map((sec, sIdx) => {
-														if (sIdx !== sectionIndex) return sec;
-														const clonedItems = sec.items.map((it) => ({
-															...it,
-															options: [...it.options]
-														}));
-														const targetItem = {
-															...clonedItems[itemIndex],
-															options: [...clonedItems[itemIndex].options]
-														};
-														targetItem.options[optIndex] = v;
-														clonedItems[itemIndex] = targetItem;
-														return { ...sec, items: clonedItems };
-													});
-												}}
-											/>
+										<div class="flex items-center space-x-2 pb-2 md:flex-row">
+											<div class="flex gap-2">
+												<input type={item.optionType} disabled name={'opt-' + item.id} />
+												<input
+													type="text"
+													class="w-auto flex-1 border-b bg-transparent pb-1"
+													value={option}
+													on:input={(e) => {
+														const v = (e.target as HTMLInputElement).value;
+														formItems = formItems.map((sec, sIdx) => {
+															if (sIdx !== sectionIndex) return sec;
+															const clonedItems = sec.items.map((it) => ({
+																...it,
+																options: [...it.options]
+															}));
+															const targetItem = {
+																...clonedItems[itemIndex],
+																options: [...clonedItems[itemIndex].options]
+															};
+															targetItem.options[optIndex] = v;
+															clonedItems[itemIndex] = targetItem;
+															return { ...sec, items: clonedItems };
+														});
+													}}
+												/>
+											</div>
 											<button
 												type="button"
 												class="text-red-500 hover:text-red-700"

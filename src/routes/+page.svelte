@@ -25,6 +25,10 @@
 	let activeTab: 'forms' | 'shared' = 'forms';
 </script>
 
+<svelte:head>
+	<title>ML CLUB NITS FORMS</title>
+</svelte:head>
+
 <div class="mb-4 ml-3 pt-4 text-xl font-bold">Create your own form here</div>
 
 <div class="mr-3 mb-8 ml-3 flex rounded-xl bg-white p-5 shadow-md sm:w-full md:mb-0 md:w-1/3">
