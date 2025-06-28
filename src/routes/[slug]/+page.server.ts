@@ -16,16 +16,16 @@ export const load: PageServerLoad = async (event) => {
 
 	return {
 		form_data: post.form_data,
-        form_hash: post.form_hash,
-        form_name: post.form_name,
-        backgroundSettings: post.backgroundSettings,
+		form_hash: post.form_hash,
+		form_name: post.form_name,
+		backgroundSettings: post.backgroundSettings
 	};
 };
 
 export const actions: Actions = {
 	default: async (event: RequestEvent) => {
 		const formData = await event.request.formData();
-        // console.log('first')
+		// console.log('first')
 		const raw = formData.get('formItems');
 
 		if (!raw || typeof raw !== 'string') {
@@ -64,9 +64,7 @@ export const actions: Actions = {
 			email: parsed.user.email
 		};
 
-		const { data, error: insertError } = await supabase
-			.from('form-responses')
-			.insert(insertObj);
+		const { data, error: insertError } = await supabase.from('form-responses').insert(insertObj);
 
 		if (insertError) {
 			console.error('Supabase insert error:', insertError);

@@ -53,5 +53,7 @@
 		{/each}
 	</div>
 {:else}
-	<div class="flex h-44 w-auto items-center justify-center text-gray-600">No shared forms found.</div>
+	<div class="flex h-44 w-auto items-center justify-center text-gray-600">
+		No shared forms found.
+	</div>
 {/if}

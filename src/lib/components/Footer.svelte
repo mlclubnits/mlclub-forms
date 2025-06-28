@@ -1,4 +1,4 @@
-<footer class="flex flex-col pt-10 bg-white justify-center space-y-10">
+<footer class="flex flex-col justify-center space-y-10 bg-white pt-10">
 	<nav class="flex flex-wrap justify-center gap-6 font-medium text-gray-500">
 		<a class="hover:text-gray-900" href="#">Home</a>
 		<a class="hover:text-gray-900" href="#">About</a>

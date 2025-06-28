@@ -89,7 +89,10 @@
 		if (!newEmail || sharedEmails.includes(newEmail)) return;
 
 		const updatedEmails = [...sharedEmails, newEmail];
-		const { error } = await supabase.from('forms').update({ shared_with: updatedEmails }).eq('id', id);
+		const { error } = await supabase
+			.from('forms')
+			.update({ shared_with: updatedEmails })
+			.eq('id', id);
 
 		if (error) return console.error('Add email error:', error);
 		sharedEmails = updatedEmails;
@@ -98,13 +101,15 @@
 
 	async function removeEmail(emailToRemove: string) {
 		const updatedEmails = sharedEmails.filter((email) => email !== emailToRemove);
-		const { error } = await supabase.from('forms').update({ shared_with: updatedEmails }).eq('id', id);
+		const { error } = await supabase
+			.from('forms')
+			.update({ shared_with: updatedEmails })
+			.eq('id', id);
 
 		if (error) return console.error('Remove email error:', error);
 		sharedEmails = updatedEmails;
 	}
 </script>
-
 
 <!-- Card Component -->
 <div
@@ -187,7 +192,7 @@
 					{#if sharedEmails.length === 0}
 						<p class="text-sm text-gray-500">No emails shared yet.</p>
 					{:else}
-						<ul class="list-disc flex flex-col gap-2 pl-5 text-md">
+						<ul class="text-md flex list-disc flex-col gap-2 pl-5">
 							{#each sharedEmails as email}
 								<li class="flex items-center justify-between">
 									<span>{email}</span>

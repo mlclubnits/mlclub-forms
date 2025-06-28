@@ -17,7 +17,4 @@ export const createSupabaseServerClient = (event: RequestEvent) => {
 };
 
 // ✅ Client-side browser Supabase
-export const supabase = createClient(
-	PUBLIC_FORMS_SUPABASE_URL,
-	PUBLIC_FORMS_SUPABASE_KEY
-);
+export const supabase = createClient(PUBLIC_FORMS_SUPABASE_URL, PUBLIC_FORMS_SUPABASE_KEY);

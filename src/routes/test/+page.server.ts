@@ -8,11 +8,11 @@ export const actions: Actions = {
 		// 1️⃣ Extract the hidden formItems field from the POST request
 		const formData = await event.request.formData();
 		const raw = formData.get('formItems');
-        
+
 		if (!raw || typeof raw !== 'string') {
-            return fail(400, { error: 'Missing formItems JSON' });
+			return fail(400, { error: 'Missing formItems JSON' });
 		}
-        
+
 		// 2️⃣ Parse JSON
 		let parsed;
 		try {
@@ -20,13 +20,20 @@ export const actions: Actions = {
 		} catch {
 			return fail(400, { error: 'Invalid JSON in formItems' });
 		}
-        
+
 		// 3️⃣ Insert into Supabase
-        // console.log(parsed);
+		// console.log(parsed);
 		const supabase = createSupabaseServerClient(event);
 		const { error } = await supabase
 			.from('forms') // ← your Supabase table name
-			.insert([{ form_data: parsed.formItems, creator_email: parsed.user.email, form_hash: parsed.user.random, formCloseTime: parsed.user.closeTime }]);
+			.insert([
+				{
+					form_data: parsed.formItems,
+					creator_email: parsed.user.email,
+					form_hash: parsed.user.random,
+					formCloseTime: parsed.user.closeTime
+				}
+			]);
 
 		if (error) {
 			console.error('Supabase insert error:', error);

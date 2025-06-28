@@ -36,15 +36,13 @@ export const load = async (event) => {
 		}
 	];
 
-	const { error } = await supabase
-		.from('forms')
-		.insert({
-			form_hash: hash,
-			form_data: formData,
-			creator_email: email,
-            formCloseTime: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 1 week from now
-			backgroundSettings: backgroundSettings
-		});
+	const { error } = await supabase.from('forms').insert({
+		form_hash: hash,
+		form_data: formData,
+		creator_email: email,
+		formCloseTime: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 1 week from now
+		backgroundSettings: backgroundSettings
+	});
 
 	if (error) {
 		console.error('Form creation failed', error);

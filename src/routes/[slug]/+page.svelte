@@ -1,14 +1,15 @@
 <script lang="ts">
 	import type { PageProps } from './$types';
+	import env from '$env/static/private';
 
-	// --- Props & State ---
 	export let data;
 	let currentSection = 0;
 
-	// Initialize a responses array: one entry per section
 	type QuestionResp = {
 		textAns: string;
 		uploadedDocLink: string;
+		uploadedFileId: string;
+		isUploading: boolean;
 		singleOption: string;
 		multiOption: string[];
 	};
@@ -20,11 +21,12 @@
 	const defaultQuestionResp = (): QuestionResp => ({
 		textAns: '',
 		uploadedDocLink: '',
+		uploadedFileId: '',
+		isUploading: false,
 		singleOption: '',
 		multiOption: []
 	});
 
-	// Build initial empty structure from data.form_data
 	let responses: SectionResp[] = data.form_data.map(
 		(section: { id: number; items: { id: number }[] }) => ({
 			sectionId: section.id,
@@ -38,11 +40,9 @@
 		})
 	);
 
-	// Reactive alias for easier templating
 	$: section = data.form_data[currentSection];
 	$: sectionResp = responses[currentSection];
 
-	// --- Navigation & Clear ---
 	function goNext() {
 		if (currentSection < data.form_data.length - 1) currentSection++;
 	}
@@ -50,7 +50,6 @@
 		if (currentSection > 0) currentSection--;
 	}
 	function clearCurrentSection() {
-		// reset just this section’s responses
 		responses[currentSection] = {
 			sectionId: section.id,
 			questions: section.items.reduce(
@@ -63,12 +62,117 @@
 		};
 	}
 
-	// --- Submit ---
+	let fileToUpload: File | null = null;
+	let publicUrl = '';
+	let errorMsg = '';
+
+	function onFileChange(e: Event) {
+		errorMsg = '';
+		const input = e.target as HTMLInputElement;
+		fileToUpload = input.files?.[0] || null;
+	}
+
+	async function uploadToCloudinary(file: File) {
+		const formData = new FormData();
+		formData.append('file', file);
+		formData.append('upload_preset', 'form_uploads');
+		formData.append('folder', 'forms-platform');
+		formData.append('resource_type', 'auto');
+
+		const res = await fetch(
+			`https://api.cloudinary.com/v1_1/${env.CLOUDINARY_CLOUD_NAME}/auto/upload`,
+			{
+				method: 'POST',
+				body: formData
+			}
+		);
+		const data = await res.json();
+		if (!res.ok) {
+			throw new Error(data.error?.message || `Upload failed ${res.status}`);
+		}
+		return { url: data.secure_url, publicId: data.public_id };
+	}
+
+	async function handleFileChange(itemId: number, e: Event) {
+		const input = e.target as HTMLInputElement;
+		const file = input.files?.[0];
+		if (!file) return;
+
+		errorMsg = '';
+
+		// start spinner
+		responses = responses.map((r, idx) =>
+			idx === currentSection
+				? {
+						...r,
+						questions: {
+							...r.questions,
+							[itemId]: {
+								...r.questions[itemId],
+								isUploading: true
+							}
+						}
+					}
+				: r
+		);
+
+		// delete old file
+		try {
+			const oldFileId = responses[currentSection].questions[itemId].uploadedFileId;
+			if (oldFileId) {
+				await fetch('/api/delete-file', {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({ publicId: oldFileId })
+				});
+			}
+		} catch {
+			// ignore
+		}
+
+		try {
+			const { url, publicId } = await uploadToCloudinary(file);
+
+			responses = responses.map((r, idx) =>
+				idx === currentSection
+					? {
+							...r,
+							questions: {
+								...r.questions,
+								[itemId]: {
+									...r.questions[itemId],
+									uploadedDocLink: url,
+									uploadedFileId: publicId
+								}
+							}
+						}
+					: r
+			);
+		} catch (err) {
+			console.error(err);
+			errorMsg = err instanceof Error ? err.message : String(err);
+		} finally {
+			responses = responses.map((r, idx) =>
+				idx === currentSection
+					? {
+							...r,
+							questions: {
+								...r.questions,
+								[itemId]: {
+									...r.questions[itemId],
+									isUploading: false
+								}
+							}
+						}
+					: r
+			);
+		}
+	}
+
 	async function handleSubmit() {
-		// build payload
 		const payload = {
 			user: {
-				email: 'user@example.com', // replace with real
+				email: 'user@example.com',
 				form_hash: data.form_hash
 			},
 			response: responses.map((sec) => ({
@@ -91,7 +195,7 @@
 			alert('Error—check console.');
 		}
 	}
-	// console.log(data.backgroundSettings[0]);
+
 	let useGradient = data.backgroundSettings[0].useGradient;
 	let gradientColor1 = data.backgroundSettings[0].gradientColor1;
 	let gradientColor2 = data.backgroundSettings[0].gradientColor2;
@@ -99,12 +203,15 @@
 	let backgroundColor = data.backgroundSettings[0].backgroundColor;
 </script>
 
-<h1 class="mb-6 text-2xl font-bold mt-10 text-center md:text-left">{data.form_name}</h1>
-<div class="h-screen w-screen fixed -z-1 top-0 left-0" style={
-		useGradient
-			? `background: linear-gradient(${gradientColor1}, ${gradientColor2});`
-			: `background-color: ${backgroundColor};`
-	}></div>
+<!-- rest of your form and UI remains unchanged -->
+
+<h1 class="mt-10 mb-6 text-center text-2xl font-bold md:text-left">{data.form_name}</h1>
+<div
+	class="fixed top-0 left-0 -z-1 h-screen w-screen"
+	style={useGradient
+		? `background: linear-gradient(${gradientColor1}, ${gradientColor2});`
+		: `background-color: ${backgroundColor};`}
+></div>
 
 <form on:submit|preventDefault={handleSubmit} class="space-y-6">
 	{#key currentSection}
@@ -161,26 +268,61 @@
 									</label>
 								{/each}
 							</div>
-						{:else if item.itemType === 'image'}
-							<input
-								type="file"
-								accept=".png,.jpg,.jpeg"
-								on:change={(e) => {
-									const f = (e.target as HTMLInputElement).files?.[0];
-									sectionResp.questions[item.id].uploadedDocLink = f?.name ?? '';
-								}}
-								class="text-sm"
-							/>
-						{:else if item.itemType === 'document'}
-							<input
-								type="file"
-								accept=".pdf,.doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-								on:change={(e) => {
-									const f = (e.target as HTMLInputElement).files?.[0];
-									sectionResp.questions[item.id].uploadedDocLink = f?.name ?? '';
-								}}
-								class="text-sm"
-							/>
+						{:else if item.itemType === 'image' || item.itemType === 'document'}
+							<div class="flex flex-col space-y-2">
+								<input
+									type="file"
+									accept={item.itemType === 'image' ? '.png,.jpg,.jpeg' : '.pdf,.doc,.docx'}
+									on:change={(e) => handleFileChange(item.id, e)}
+									class="text-sm"
+									disabled={sectionResp.questions[item.id].isUploading}
+								/>
+
+								{#if sectionResp.questions[item.id].isUploading}
+									<div class="flex items-center gap-2 text-gray-600">
+										<!-- simple Tailwind spinner -->
+										<svg class="h-5 w-5 animate-spin" viewBox="0 0 24 24">
+											<circle
+												class="opacity-25"
+												cx="12"
+												cy="12"
+												r="10"
+												stroke="currentColor"
+												stroke-width="4"
+												fill="none"
+											/>
+											<path
+												class="opacity-75"
+												fill="currentColor"
+												d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+											/>
+										</svg>
+										Uploading…
+									</div>
+								{:else if sectionResp.questions[item.id].uploadedDocLink}
+									<!-- once done: show preview -->
+									<div>
+										<a
+											href={sectionResp.questions[item.id].uploadedDocLink}
+											target="_blank"
+											class="text-blue-600 underline"
+										>
+											View Uploaded File
+										</a>
+									</div>
+									{#if item.itemType === 'image'}
+										<img
+											src={sectionResp.questions[item.id].uploadedDocLink}
+											alt="Preview"
+											class="mt-2 max-h-40 rounded border"
+										/>
+									{/if}
+								{/if}
+
+								{#if errorMsg}
+									<p class="text-sm text-red-500">{errorMsg}</p>
+								{/if}
+							</div>
 						{/if}
 
 						{#if item.description}

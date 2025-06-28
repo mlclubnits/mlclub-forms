@@ -38,7 +38,11 @@
 		on:click={() => goto('/create')}
 	>
 		<PlusCircle class="text-gray-600" />
-		<span class="bg-linear-90 from-sky-600 to-violet-600 font-semibold bg-clip-text text-transparent"> Create New Form</span>
+		<span
+			class="bg-linear-90 from-sky-600 to-violet-600 bg-clip-text font-semibold text-transparent"
+		>
+			Create New Form</span
+		>
 	</button>
 </div>
 
@@ -57,7 +61,7 @@
 			aria-selected={activeTab === 'forms'}
 			on:click={() => (activeTab = 'forms')}
 		>
-		<FileTextIcon />
+			<FileTextIcon />
 			My Forms
 		</button>
 
@@ -72,7 +76,7 @@
 			aria-selected={activeTab === 'shared'}
 			on:click={() => (activeTab = 'shared')}
 		>
-		<Forward class="" />
+			<Forward class="" />
 			Shared with me
 		</button>
 	</nav>
