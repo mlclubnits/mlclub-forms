@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { PageProps } from './$types';
-	import env from '$env/static/private';
+	import { PUBLIC_CLOUDINARY_CLOUD_NAME } from '$env/static/public';
 
 	export let data;
 	let currentSection = 0;
@@ -80,7 +80,7 @@
 		formData.append('resource_type', 'auto');
 
 		const res = await fetch(
-			`https://api.cloudinary.com/v1_1/${env.CLOUDINARY_CLOUD_NAME}/auto/upload`,
+			`https://api.cloudinary.com/v1_1/${PUBLIC_CLOUDINARY_CLOUD_NAME}/auto/upload`,
 			{
 				method: 'POST',
 				body: formData
