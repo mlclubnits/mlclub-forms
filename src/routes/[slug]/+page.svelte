@@ -204,7 +204,9 @@
 </script>
 
 <!-- rest of your form and UI remains unchanged -->
-
+<svelte:head>
+	<title>{data.form_name} | ML Club Forms</title>
+</svelte:head>
 <h1 class="mt-10 mb-6 text-center text-2xl font-bold md:text-left">{data.form_name}</h1>
 <div
 	class="fixed top-0 left-0 -z-1 h-screen w-screen"
@@ -219,7 +221,7 @@
 			<h2 class="text-lg font-semibold">{section.title}</h2>
 			<p class="mb-4 text-sm text-gray-600">{section.description}</p>
 
-			<ul class="space-y-4">
+			<ul class="space-y-4 lg:px-7 md:px-5">
 				{#each section.items as item, idx (item.id)}
 					<li>
 						<label class="mb-1 block text-sm font-medium" for={`item-${item.id}`}>
@@ -228,11 +230,12 @@
 
 						{#if item.itemType === 'text'}
 							<input
+								required
 								id={`item-${item.id}`}
 								type={item.inputType}
 								placeholder={item.placeholder}
 								bind:value={sectionResp.questions[item.id].textAns}
-								class="w-full rounded border px-3 py-1"
+								class="w-full rounded px-3 py-1 bg-[#ffffff22] placeholder:text-zinc-800 border-b-2 border-0 border-[#ffffff86] focus:border-blue-500 focus:border-0 focus:outline-none focus:border-b-2"
 							/>
 						{:else if item.itemType === 'option'}
 							<div class="space-y-2">
@@ -240,6 +243,7 @@
 									<label class="flex items-center gap-2">
 										{#if item.optionType === 'radio'}
 											<input
+												required
 												type="radio"
 												name={`q-${item.id}`}
 												value={opt}
@@ -348,7 +352,7 @@
 			Prev
 		</button>
 
-		<button type="button" on:click={clearCurrentSection} class="rounded bg-yellow-400 px-4 py-1">
+		<button type="button" on:click={clearCurrentSection} class="rounded bg-gray-200 px-4 py-1">
 			Clear Section
 		</button>
 
@@ -357,7 +361,12 @@
 				Next
 			</button>
 		{:else}
-			<button type="submit" class="rounded bg-indigo-600 px-4 py-2 text-white"> Submit </button>
+			<button type="submit" class="px-5 py-2 text-base font-semibold rounded-lg " style="background-color: {data.backgroundSettings[0].gradientColor1};"> Submit </button>
 		{/if}
 	</div>
 </form>
+<style>
+	button {
+		cursor: pointer;
+	}
+</style>
